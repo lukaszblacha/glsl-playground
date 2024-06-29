@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
+    "build": "vite build",
     "dev": "vite dev",
     "start": "vite start",
     "lint": "prettier --write . && eslint .",
