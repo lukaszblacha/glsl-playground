@@ -32,7 +32,7 @@ jobs:
       - name: Build project
         run: |
           npm ci
-          npm run build
+          npm run build -- --base=${{ github.event.repository.name }}
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
