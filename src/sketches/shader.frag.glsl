@@ -165,22 +165,28 @@ vec3 normal_vector(vec3 point)
 }
 
 // @see https://www.shadertoy.com/view/NlfGDs
-float light_diffuse(vec4 light, vec3 point) { 
-    vec3 light_direction = normalize(light.xyz - point);
+vec3 light_diffuse(vec3 light_pos, vec3 light_color, vec3 point) { 
+    vec3 light_direction = normalize(light_pos - point);
    // Diffuse light
     float dif = dot(normal_vector(point), light_direction);
-    // Clamp so it doesnt go below 0
-    return clamp(dif * light.w, 0.0, 1.0);
+
+    return clamp(dif * light_color, 0.0, 1.0);
 }
 
-float get_light(vec3 position) {
-  vec4 light1 = vec4(rot_xz(vec3(9, 2, 0), uTime / 2.), 0.2);
-  vec4 light2 = vec4(rot_xz(vec3(-9, -2, 0), uTime / 2.), 0.2);
-  vec4 light3 = vec4(-3, 10, 0, 0.8);
+vec3 get_light(vec3 position) {
+  vec3 light1 = vec3(rot_xz(vec3(9, 2, 0), uTime / 2.));
+  vec3 light1_color = vec3(1, 0.5, 0.5);
+  vec3 light2 = vec3(rot_xz(vec3(-9, -2, 0), uTime / 2.));
+  vec3 light2_color = vec3(0.5);
+  vec3 light3 = vec3(-3, 10, 0);
+  vec3 light3_color = vec3(0.2);
 
-  float val = light_diffuse(light1, position) + light_diffuse(light2, position) + light_diffuse(light3, position);
+  vec3 color = 
+    light_diffuse(light1, light1_color, position) + 
+    light_diffuse(light2, light2_color, position) + 
+    light_diffuse(light3, light3_color, position);
 
-  return clamp(val, 0.0, 1.0);
+  return clamp(color, 0.0, 1.0);
 }
 
 vec4 ray_march(vec3 origin, vec3 direction) {
@@ -218,8 +224,6 @@ void main() {
 
   vec4 ray = ray_march(ray_origin, ray_direction);
 
-  float dif = get_light(ray.xyz);
-
-  vec3 color = vec3(dif);
+  vec3 color = get_light(ray.xyz);
   gl_FragColor = vec4(color, 1.0);
 }
