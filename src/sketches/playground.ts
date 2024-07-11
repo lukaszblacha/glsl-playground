@@ -21,7 +21,7 @@ export const sketch = (p: P5) => {
       requestAnimationFrame(() => {
         const mouse = [
           Math.max(-1, Math.min(1, (e.clientX - rect.left) / p.width) * 2 - 1),
-          Math.max(-1, Math.min(1, (e.clientY - rect.top) / p.height) * 2 - 1),
+          -Math.max(-1, Math.min(1, (e.clientY - rect.top) / p.height) * 2 - 1),
         ];
         shader.setUniform("uMouse", mouse);
       });
