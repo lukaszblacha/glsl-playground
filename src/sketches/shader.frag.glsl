@@ -1,4 +1,4 @@
-precision mediump float;
+precision highp float;
 
 uniform float uTime;
 uniform vec2 uRes;
@@ -8,7 +8,7 @@ varying vec2 vPos;
 
 #define MAX_ITERATIONS 80
 #define MAX_DISTANCE 100.0
-#define SURFACE_DISTANCE 0.01
+#define SURFACE_DISTANCE 0.001
 #define PI 3.1415926538
 
 float min3(in float a, in float b, in float c) {
@@ -148,7 +148,7 @@ float render_cabin(in vec3 p) {
 
 float distane_to_scene(in vec3 point) {
   float cabin = render_cabin(point);
-  float ground = point.y + 3.1;
+  float ground = point.y + 0.3;
 
   return min(
     ground,
@@ -156,42 +156,14 @@ float distane_to_scene(in vec3 point) {
   );
 }
 
-vec3 normal_vector(in vec3 point)
-{ 
-    float distance = distane_to_scene(point);
-    vec2 e = vec2(SURFACE_DISTANCE, 0); // Epsilon
-    vec3 n = distance - vec3(
-      distane_to_scene(point - e.xyy),  
-      distane_to_scene(point - e.yxy),
-      distane_to_scene(point - e.yyx)
-    );
-   
-    return normalize(n);
-}
-
-// @see https://www.shadertoy.com/view/NlfGDs
-vec3 light_diffuse(in vec3 light_pos, in vec3 light_color, in vec3 point) { 
-    vec3 light_direction = normalize(light_pos - point);
-   // Diffuse light
-    float dif = dot(normal_vector(point), light_direction);
-
-    return clamp(dif * light_color, 0.0, 1.0);
-}
-
-vec3 scene_light(vec3 position) {
-  vec3 light1 = vec3(rot_xz(vec3(9, 2, 0), uTime / 2.));
-  vec3 light1_color = vec3(1, 0.7, 0.5);
-  vec3 light2 = vec3(rot_xz(vec3(-9, -2, 0), uTime / 2.));
-  vec3 light2_color = vec3(0.5, 0.4, 0.4);
-  vec3 light3 = vec3(-3, 10, 0);
-  vec3 light3_color = vec3(0.2);
-
-  vec3 color = 
-    light_diffuse(light1, light1_color, position) + 
-    light_diffuse(light2, light2_color, position) + 
-    light_diffuse(light3, light3_color, position);
-
-  return clamp(color, 0.0, 1.0);
+vec3 normal_vector(in vec3 point) { 
+  vec3 n = vec3(
+    distane_to_scene(point - vec3(SURFACE_DISTANCE, 0, 0)),
+    distane_to_scene(point - vec3(0, SURFACE_DISTANCE, 0)),
+    distane_to_scene(point - vec3(0, 0, SURFACE_DISTANCE))
+  );
+  
+  return normalize(distane_to_scene(point) - n);
 }
 
 vec4 ray_march(in vec3 origin, in vec3 direction) {
@@ -212,15 +184,50 @@ vec4 ray_march(in vec3 origin, in vec3 direction) {
     return vec4(position, travel_distance);
 }
 
+// @see https://www.shadertoy.com/view/NlfGDs
+float light_diffuse(in vec3 light_pos, in vec3 point) { 
+  vec3 light_direction = normalize(light_pos - point);
+  vec3 normal = normal_vector(point);
+
+  // Diffuse light
+  float dif = clamp(dot(normal, light_direction), 0.0, 1.0);
+
+  // Shadows
+  vec4 ray = ray_march(
+    point + normal * SURFACE_DISTANCE * 2.0,
+    normalize(light_direction)
+  );
+
+  if (ray.w < length(point - light_pos)) {
+    return dif * 0.1;
+  }
+
+  return dif;
+}
+
+vec3 scene_light(in vec3 position) {
+  vec3 light1_pos = vec3(rot_xz(vec3(3, 2, 0), -uTime / 3.));
+  vec3 light2_pos = vec3(-10, 10, 1);
+  vec3 light3_pos = vec3(10, 3, 4);
+
+  vec3 light1_color = vec3(0.3, 0, 0);
+  vec3 light2_color = vec3(abs(sin(uTime / 10.0)), 0, abs(cos(uTime / 10.0))) * 0.1;
+  vec3 light3_color = vec3(0.5, 0.55, 0.3);
+
+  vec3 c1 = vec3(light_diffuse(light1_pos, position) * light1_color.xyz);
+  vec3 c2 = vec3(light_diffuse(light2_pos, position) * light2_color.xyz);
+  vec3 c3 = vec3(light_diffuse(light3_pos, position) * light3_color.xyz);
+
+  return clamp(c1 + c2 + c3, 0.0, 1.0);
+}
+
 void main() {
   vec2 uv = vPos * 2.0 - 1.0;
 
   // Move the camera
   vec2 mouse_angle = vec2(-uMouse.x * 2.0, -uMouse.y * 2.0);
 
-  // Initialization
   vec3 ray_origin = vec3(0, 0, -3);
-  // Vector length is normalized to be of length 1
   vec3 ray_direction = normalize(vec3(uv, 1));
   ray_origin.xz *= rot2d(mouse_angle.x);
   ray_direction.xz *= rot2d(mouse_angle.x);

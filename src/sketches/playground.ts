@@ -9,8 +9,8 @@ export const sketch = (p: P5) => {
   let shader: P5.Shader;
 
   p.setup = () => {
-    p.width = 640;
-    p.height = 480;
+    p.width = 800;
+    p.height = 600;
     renderer = p.createCanvas(p.width, p.height, p.WEBGL);
     shader = p.createShader(vert, frag);
     shader.setUniform("uRes", [p.width, p.height]);
