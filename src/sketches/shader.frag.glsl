@@ -195,7 +195,7 @@ float light_diffuse(in vec3 light_pos, in vec3 point) {
   // Shadows
   vec4 ray = ray_march(
     point + normal * SURFACE_DISTANCE * 2.0,
-    normalize(light_direction)
+    light_direction
   );
 
   if (ray.w < length(point - light_pos)) {
@@ -214,9 +214,9 @@ vec3 scene_light(in vec3 position) {
   vec3 light2_color = vec3(abs(sin(uTime / 10.0)), 0, abs(cos(uTime / 10.0))) * 0.1;
   vec3 light3_color = vec3(0.5, 0.55, 0.3);
 
-  vec3 c1 = vec3(light_diffuse(light1_pos, position) * light1_color.xyz);
-  vec3 c2 = vec3(light_diffuse(light2_pos, position) * light2_color.xyz);
-  vec3 c3 = vec3(light_diffuse(light3_pos, position) * light3_color.xyz);
+  vec3 c1 = vec3(light_diffuse(light1_pos, position) * light1_color);
+  vec3 c2 = vec3(light_diffuse(light2_pos, position) * light2_color);
+  vec3 c3 = vec3(light_diffuse(light3_pos, position) * light3_color);
 
   return clamp(c1 + c2 + c3, 0.0, 1.0);
 }
