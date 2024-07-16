@@ -206,19 +206,20 @@ float light_diffuse(in vec3 light_pos, in vec3 point) {
 }
 
 vec3 scene_light(in vec3 position) {
-  vec3 light1_pos = vec3(rot_xz(vec3(3, 2, 0), -uTime / 3.));
-  vec3 light2_pos = vec3(-10, 10, 1);
-  vec3 light3_pos = vec3(10, 3, 4);
+  vec3 light1_pos = vec3(rot_xz(vec3(2, 1, 2), uTime));
+  vec3 light2_pos = vec3(-1, 0.1, 1);
+  vec3 light3_pos = vec3(5, 20, 5);
 
-  vec3 light1_color = vec3(0.3, 0, 0);
-  vec3 light2_color = vec3(abs(sin(uTime / 10.0)), 0, abs(cos(uTime / 10.0))) * 0.1;
-  vec3 light3_color = vec3(0.5, 0.55, 0.3);
+  vec4 light1_color = vec4(1, 0, 0, 0.6);
+  vec4 light2_color = vec4(0, 0, 1, 0.6);
+  vec4 light3_color = vec4(1, 0.9, 0.6, 0.5);
 
-  vec3 c1 = vec3(light_diffuse(light1_pos, position) * light1_color);
-  vec3 c2 = vec3(light_diffuse(light2_pos, position) * light2_color);
-  vec3 c3 = vec3(light_diffuse(light3_pos, position) * light3_color);
+  vec3 light =
+    light_diffuse(light1_pos, position) * light1_color.rgb * light1_color.a +
+    light_diffuse(light2_pos, position) * light2_color.rgb * light2_color.a +
+    light_diffuse(light3_pos, position) * light3_color.rgb * light3_color.a;
 
-  return clamp(c1 + c2 + c3, 0.0, 1.0);
+  return clamp(light, 0.0, 1.0);
 }
 
 void main() {
